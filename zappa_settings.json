@@ -1,0 +1,119 @@
+{
+  "stage": {
+    "app_function": "main.lambda_handler",
+    "lambda_handler": "main.lambda_handler",
+    "lambda_description": "Moves the new coming file to the target path and updates the metadata",
+    "s3_bucket": "my-zappa-lambda-bucket",
+    "apigateway_enabled": false,
+    "aws_region": "us-east-2",
+    "runtime": "python3.6",
+    "aws_environment_variables": {
+      "ENV": "default"
+    },
+    "events": [
+      {
+        "function": "main.lambda_handler",
+        "event_source": {
+          "arn": "arn:aws:s3:::my-source-bucket",
+          "key_filters": [{
+              "type": "prefix",
+              "value": "source/"
+          }],
+          "events": [
+            "s3:ObjectCreated:*"
+          ]
+        }
+      }
+    ],
+    "vpc_config": {
+        "SubnetIds": [ "subnet-1", "subnet-2", "subnet-3" ],
+        "SecurityGroupIds": [ "sg-1" ]
+    },
+    "extra_permissions": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:PutObject",
+          "s3:GetObject"
+        ],
+        "Resource": [
+          "arn:aws:s3:::my-source-bucket/*",
+          "arn:aws:s3:::my-source-bucket",
+          "arn:aws:s3:::my-target-bucket/*",
+          "arn:aws:s3:::my-target-bucket"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": "logs:CreateLogGroup",
+        "Resource": "arn:aws:logs:us-east-2:111111111111:*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": [
+          "arn:aws:logs:us-east-2:111111111111:log-group:/aws/lambda/AthenaLambdaTrigger:*"
+        ]
+      },
+      {
+          "Action": [
+              "secretsmanager:*",
+              "cloudformation:CreateChangeSet",
+              "cloudformation:DescribeChangeSet",
+              "cloudformation:DescribeStackResource",
+              "cloudformation:DescribeStacks",
+              "cloudformation:ExecuteChangeSet",
+              "ec2:DescribeSecurityGroups",
+              "ec2:DescribeSubnets",
+              "ec2:DescribeVpcs",
+              "kms:DescribeKey",
+              "kms:ListAliases",
+              "kms:ListKeys",
+              "lambda:ListFunctions",
+              "rds:DescribeDBClusters",
+              "rds:DescribeDBInstances",
+              "redshift:DescribeClusters",
+              "tag:GetResources"
+          ],
+          "Effect": "Allow",
+          "Resource": "*"
+      },
+      {
+          "Action": [
+              "lambda:AddPermission",
+              "lambda:CreateFunction",
+              "lambda:GetFunction",
+              "lambda:InvokeFunction",
+              "lambda:UpdateFunctionConfiguration"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:lambda:*:*:function:SecretsManager*"
+      },
+      {
+          "Action": [
+              "serverlessrepo:CreateCloudFormationChangeSet",
+              "serverlessrepo:GetApplication"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:serverlessrepo:*:*:applications/SecretsManager*"
+      },
+      {
+          "Action": [
+              "s3:GetObject"
+          ],
+          "Effect": "Allow",
+          "Resource": [
+              "arn:aws:s3:::awsserverlessrepo-changesets*",
+              "arn:aws:s3:::secrets-manager-rotation-apps-*/*"
+          ]
+      }
+    ],
+    "log_level": "INFO",
+    "keep_warm": false,
+    "timeout_seconds": 180,
+    "memory_size": 512
+  }
+}
